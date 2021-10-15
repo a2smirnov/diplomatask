@@ -2,6 +2,7 @@ parameters:
   deployToEnv: 'dev'
 
 # Creating k8s namespace for choosen environment
+steps:
 - task: Kubernetes@1
   displayName: Creating a namespace
   inputs:
