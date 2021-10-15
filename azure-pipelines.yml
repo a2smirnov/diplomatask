@@ -143,7 +143,7 @@ stages:
 #  condition: false
 
   jobs:
-  - deployment: Deploy
+  - deployment: Deploy dev
     displayName: Deploy to AKS dev
     pool:
       vmImage: $(vmImageName)
@@ -155,7 +155,7 @@ stages:
           - template: templates/aksdeploy.yaml
             parameters:
               deployToEnv: $(devEnv)
-  - deployment: Deploy
+  - deployment: Deploy prod
     displayName: Deploy to AKS prod
     pool:
       vmImage: $(vmImageName)
