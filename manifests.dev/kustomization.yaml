@@ -1,0 +1,9 @@
+bases:
+- ../manifests
+namespace: dev
+patchesStrategicMerge:
+- be-php.yaml
+- be-nginx.yaml
+- fe-nginx.yaml
+resources:
+- ingress.yaml
