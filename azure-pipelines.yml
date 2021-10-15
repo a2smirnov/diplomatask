@@ -25,9 +25,12 @@ variables:
   #dockerRegistryServiceConnection: 'ascicdacr'
   #containerRegistry: 'ascicdacr.azurecr.io'
   # Images for app parts
-  #imageRepositoryFE: 'ascicdacr/fe-nginx'
-  #imageRepositoryBE-nginx: 'ascicdacr/be-nginx'
-  #imageRepositoryBE-php: 'ascicdacr/be-php'
+- name: imageRepositoryFE
+  value: 'fe-nginx'
+- name: imageRepositoryBE-nginx
+  value: 'be-nginx'
+- name: imageRepositoryBE-php
+  value: 'be-php'
   # Other Build settings
 - name: dockerfilePathFE
   value: './frontend/Dockerfile'
@@ -91,8 +94,7 @@ stages:
       displayName: Build and push FE image
       inputs:
         command: BuildAndPush
-#        repository: $(imageRepositoryFE)
-        repository: $(repositoryName)
+        repository: $(imageRepositoryFE)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(frontendContext)
         dockerfile: $(dockerfilePathFE)
@@ -101,8 +103,7 @@ stages:
       displayName: Build and push BE-nginx image
       inputs:
         command: BuildAndPush
-#        repository: $(imageRepositoryBE-nginx)
-        repository: $(repositoryName)
+        repository: $(imageRepositoryBE-nginx)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-nginx)
@@ -111,8 +112,7 @@ stages:
       displayName: Build and push BE-php image
       inputs:
         command: BuildAndPush
-#        repository: $(imageRepositoryBE-php)
-        repository: $(repositoryName)
+        repository: $(imageRepositoryBE-php)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-php)
