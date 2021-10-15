@@ -55,8 +55,8 @@ variables:
   # K8s configmap for apllication environment variables storing
   #appNonSecret: 'app-public'
   # Agent VM image name
- - name: vmImageName
-   value: 'ubuntu 20.04'
+- name: vmImageName
+  value: 'ubuntu 20.04'
 
 stages:
 - stage: QualityGate
