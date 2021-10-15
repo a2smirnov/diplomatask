@@ -50,7 +50,7 @@ variables:
   #imagePullSecret: 'ascicdacr-auth'
   # Dev/prod k8s customization folders
 - name: kustomizationFolder
-  value: '$(Pipeline.Workspace)/manifests.$(env_type)/'
+  value: '$(Pipeline.Workspace)/manifests'
   # K8s secret for apllication environment variables storing
   #appSecret: 'app-secret'
   # K8s configmap for apllication environment variables storing

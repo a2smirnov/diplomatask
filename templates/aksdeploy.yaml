@@ -45,7 +45,7 @@ steps:
   inputs:
     action: bake
     renderType: kustomize
-    kustomizationPath: $(kustomizationFolder)
+    kustomizationPath: $(kustomizationFolder).${{ parameters.deployToEnv }}/
 # Applying manifest
 - task: KubernetesManifest@0
   displayName: Deploying to Kubernetes cluster
