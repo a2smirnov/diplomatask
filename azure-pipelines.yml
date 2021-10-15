@@ -122,12 +122,12 @@ stages:
     - script: envsubst < manifests/ingress-tmp.yaml > manifests.$ENV_TYPE/ingress.yaml
       displayName: Manifest template for dev
       env:
-        EXT_NAME: "http://$(devEnv).$(aksExternalIP).nip.io"
+        EXT_NAME: "$(devEnv).$(aksExternalIP).nip.io"
         ENV_TYPE: $(devEnv)
     - script: envsubst < manifests/ingress-tmp.yaml > manifests.$ENV_TYPE/ingress.yaml
       displayName: Manifest template for dev
       env:
-        EXT_NAME: "http://$(prodEnv).$(aksExternalIP).nip.io"
+        EXT_NAME: "$(prodEnv).$(aksExternalIP).nip.io"
         ENV_TYPE: $(prodEnv)
 
     - publish: manifests
@@ -155,4 +155,7 @@ stages:
           - template: templates/aksdeploy.yaml
             parameters:
               deployToEnv: $(devEnv)
+          - template: templates/aksdeploy.yaml
+            parameters:
+              deployToEnv: $(prodEnv)
 
