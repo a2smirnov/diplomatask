@@ -1,0 +1,61 @@
+parameters:
+  deployToEnv: 'dev'
+
+# Creating k8s namespace for choosen environment
+- task: Kubernetes@1
+  displayName: Creating a namespace
+  inputs:
+    kubernetesServiceEndpoint: $(k8sConnection)
+    command: apply
+    useConfigurationFile: true
+    inline: '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "${{ parameters.deployToEnv }}" }}'
+# Creating secret for ACR connection
+- task: KubernetesManifest@0
+  displayName: Creating imagePullSecret
+  inputs:
+    action: createSecret
+    kubernetesServiceConnection: $(k8sConnection)
+    secretName: $(imagePullSecret)
+    namespace: ${{ parameters.deployToEnv }}
+    dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+# Creating secrets for DB connection
+- task: KubernetesManifest@0
+  displayName: Creating app variables secret
+  inputs:
+    action: createSecret
+    kubernetesServiceConnection: $(k8sConnection)
+    secretName: $(appSecret)
+    secretType: generic
+    namespace: ${{ parameters.deployToEnv }}
+    secretArguments: '--from-literal=DB_USERNAME=$(DB_USERNAME) --from-literal=DB_PASSWORD=$(DB_PASSWORD)'
+# Creating configmap for non-secret variables
+- task: Kubernetes@1
+  displayName: Creating a map for non-secret variables
+  inputs:
+    kubernetesServiceEndpoint: $(k8sConnection)
+    namespace: ${{ parameters.deployToEnv }}
+    configMapName: $(appNonSecret)
+    forceUpdateConfigMap: true
+    configMapArguments: '--from-literal=ENV_TYPE=${{ parameters.deployToEnv }} --from-literal=DB_HOST=$(DB_HOST) --from-literal=DB_NAME=$(DB_NAME)'
+# "Backing" resulting manifest via kustomize
+- task: KubernetesManifest@0
+  name: bake
+  displayName: Baking K8s manifests from kustomization path
+  inputs:
+    action: bake
+    renderType: kustomize
+    kustomizationPath: $(kustomizationFolder)
+# Applying manifest
+- task: KubernetesManifest@0
+  displayName: Deploying to Kubernetes cluster
+  inputs:
+    action: deploy
+    kubernetesServiceConnection: $(k8sConnection)
+    namespace: ${{ parameters.deployToEnv }}
+    manifests: $(bake.manifestsBundle)
+    imagePullSecrets: |
+      $(imagePullSecret)
+    containers: |
+      $(containerRegistry)/$(imageRepositoryFE):$(tag)
+      $(containerRegistry)/$(imageRepositoryBE-nginx):$(tag)
+      $(containerRegistry)/$(imageRepositoryBE-php):$(tag)
