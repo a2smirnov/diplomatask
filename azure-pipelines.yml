@@ -58,7 +58,7 @@ stages:
         - task: SonarCloudPrepare@1
           displayName: 'Prepare analysis on SonarCloud'
           inputs:
-            SonarCloud: "$(SonarCloudConnection)"
+            SonarCloud: 'SonarCloud'
             organization: 'asmirnov51'
             scannerMode: 'CLI'
             configMode: 'manual'
