@@ -156,6 +156,7 @@ stages:
             parameters:
               deployToEnv: $(devEnv)
   - deployment: DeployProd
+    dependsOn: DeployDev
     displayName: Deploy to AKS prod
     pool:
       vmImage: $(vmImageName)
