@@ -26,11 +26,11 @@ variables:
   #containerRegistry: 'ascicdacr.azurecr.io'
   # Images for app parts
 - name: imageRepositoryFE
-  value: 'fe-nginx'
+  value: 'ascicdacr/fe-nginx'
 - name: imageRepositoryBE-nginx
-  value: 'be-nginx'
+  value: 'ascicdacr/be-nginx'
 - name: imageRepositoryBE-php
-  value: 'be-php'
+  value: 'ascicdacr/be-php'
   # Other Build settings
 - name: dockerfilePathFE
   value: './frontend/Dockerfile'
