@@ -25,8 +25,6 @@ variables:
   #dockerRegistryServiceConnection: 'ascicdacr'
   #containerRegistry: 'ascicdacr.azurecr.io'
   # Images for app parts
-- name: imageRepository
-  value: 'ascicdacr'
   #imageRepositoryFE: 'ascicdacr/fe-nginx'
   #imageRepositoryBE-nginx: 'ascicdacr/be-nginx'
   #imageRepositoryBE-php: 'ascicdacr/be-php'
@@ -94,6 +92,7 @@ stages:
       inputs:
         command: BuildAndPush
 #        repository: $(imageRepositoryFE)
+        repository: $(repositoryName)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(frontendContext)
         dockerfile: $(dockerfilePathFE)
@@ -103,6 +102,7 @@ stages:
       inputs:
         command: BuildAndPush
 #        repository: $(imageRepositoryBE-nginx)
+        repository: $(repositoryName)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-nginx)
@@ -112,6 +112,7 @@ stages:
       inputs:
         command: BuildAndPush
 #        repository: $(imageRepositoryBE-php)
+        repository: $(repositoryName)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-php)
@@ -119,8 +120,10 @@ stages:
 
     - publish: manifests
       artifact: manifests
-    - publish: manifests.$(env_type)
-      artifact: manifests.$(env_type)
+    - publish: manifests.$(devEnv)
+      artifact: manifests.$(devEnv)
+    - publish: manifests.$(prodEnv)
+      artifact: manifests.$(prodEnv)
 
 - stage: Deploy
   displayName: Deploying application to Azure k8s 
