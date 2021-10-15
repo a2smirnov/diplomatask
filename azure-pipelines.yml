@@ -62,6 +62,7 @@ variables:
 stages:
 - stage: QualityGate
   displayName: Checking source code with SonarCloud
+  condition: false
   jobs:
     - job: CodeCheck
       steps:
@@ -117,12 +118,14 @@ stages:
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-php)
         tags: $(tag)
-#Here will be manifest preparation
+#manifest preparation
     - script: envsubst < manifests/ingress-tmp.yaml > manifests.$ENV_TYPE/ingress.yaml
+      displayName: Manifest template for dev
       env:
         EXT_NAME: "http://$(devEnv).$(aksExternalIP).nip.io"
         ENV_TYPE: $(devEnv)
     - script: envsubst < manifests/ingress-tmp.yaml > manifests.$ENV_TYPE/ingress.yaml
+      displayName: Manifest template for dev
       env:
         EXT_NAME: "http://$(prodEnv).$(aksExternalIP).nip.io"
         ENV_TYPE: $(prodEnv)
@@ -144,19 +147,19 @@ stages:
     displayName: Deploy to AKS dev
     pool:
       vmImage: $(vmImageName)
-    environment: dev
+    environment: $(devEnv)
     strategy:
       runOnce:
         deploy:
           steps:
           # Creating k8s namespace for choosen environment
           - task: Kubernetes@1
-            displayName: Creating a new namespace $(k8sNamespace)
+            displayName: Creating a namespace
             inputs:
               kubernetesServiceEndpoint: $(k8sConnection)
               command: apply
               useConfigurationFile: true
-              inline: '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "$(k8sNamespace)" }}'
+              inline: '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "$(devEnv)" }}'
           # Creating secret for ACR connection
           - task: KubernetesManifest@0
             displayName: Creating imagePullSecret
@@ -164,7 +167,7 @@ stages:
               action: createSecret
               kubernetesServiceConnection: $(k8sConnection)
               secretName: $(imagePullSecret)
-              namespace: $(k8sNamespace)
+              namespace: $(devEnv)
               dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
           # Creating secrets for DB connection
           - task: KubernetesManifest@0
@@ -174,17 +177,17 @@ stages:
               kubernetesServiceConnection: $(k8sConnection)
               secretName: $(appSecret)
               secretType: generic
-              namespace: $(k8sNamespace)
+              namespace: $(devEnv)
               secretArguments: '--from-literal=DB_USERNAME=$(DB_USERNAME) --from-literal=DB_PASSWORD=$(DB_PASSWORD)'
           # Creating configmap for non-secret variables
           - task: Kubernetes@1
             displayName: Creating a map for non-secret variables
             inputs:
               kubernetesServiceEndpoint: $(k8sConnection)
-              namespace: $(k8sNamespace)
+              namespace: $(devEnv)
               configMapName: $(appNonSecret)
               forceUpdateConfigMap: true
-              configMapArguments: '--from-literal=ENV_TYPE=$(env_type) --from-literal=DB_HOST=$(DB_HOST) --from-literal=DB_NAME=$(DB_NAME)'
+              configMapArguments: '--from-literal=ENV_TYPE=$(devEnv) --from-literal=DB_HOST=$(DB_HOST) --from-literal=DB_NAME=$(DB_NAME)'
           # "Backing" resulting manifest via kustomize
           - task: KubernetesManifest@0
             name: bake
@@ -199,7 +202,7 @@ stages:
             inputs:
               action: deploy
               kubernetesServiceConnection: $(k8sConnection)
-              namespace: $(k8sNamespace)
+              namespace: $(devEnv)
               manifests: $(bake.manifestsBundle)
               imagePullSecrets: |
                 $(imagePullSecret)
