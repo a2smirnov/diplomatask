@@ -1,0 +1,26 @@
+# Для начала указываем исходный образ, он будет использован как основа
+FROM php:7.4-fpm-alpine
+
+# Установим некоторые зависимости и модули PHP.
+# Для установки модулей используем команду docker-php-ext-install.
+RUN apk add \
+        curl \
+	stress-ng \
+	libzip-dev \
+	libmcrypt-dev \
+        && docker-php-ext-install -j$(nproc) iconv mysqli pdo_mysql zip
+
+# Куда же без composer'а.
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Добавим свой php.ini, можем в нем определять свои значения конфига
+COPY php.ini /usr/local/etc/php/conf.d/40-custom.ini
+
+# Копируем исходники в контейнер
+COPY ./api /var/www/api
+
+# Указываем рабочую директорию для PHP
+WORKDIR /var/www
+
+# Запускаем контейнер
+CMD ["php-fpm"]

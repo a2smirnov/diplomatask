@@ -1,0 +1,10 @@
+#!/bin/bash -
+echo "Building Azure cloud infrastructure for diploma task demo"
+pushd terraform
+    terraform init
+    terraform apply -auto-approve || { echo "Error creating infrastructure!"; exit 1; }
+popd
+echo "Getting k8s credentials"
+pushd k8s
+	./k8env $1 || { echo "Error getting k8s credentials!"; exit 1; }
+popd

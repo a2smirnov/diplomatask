@@ -1,0 +1,189 @@
+# Deploy to Azure Kubernetes Service
+# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+# Setting "build and deploy" trigger - master branch with 'Build' tag
+trigger:
+  batch: true
+  tags:
+    include:
+      - '*Build*'
+  paths:
+    exclude:
+      - README.md
+
+
+resources:
+- repo: self
+
+variables:
+
+  # Environment type - 'dev' or 'prod'
+  dev_env: 'dev'
+  prod_env: 'prod'
+  # Container registry service connection established in "Project settings/Service connections"
+  dockerRegistryServiceConnection: 'ascicdacr'
+  containerRegistry: 'ascicdacr.azurecr.io'
+  # Images for app parts
+  imageRepositoryFE: 'ascicdacr/fe-nginx'
+  imageRepositoryBE-nginx: 'ascicdacr/be-nginx'
+  imageRepositoryBE-php: 'ascicdacr/be-php'
+  # Other Build settings
+  dockerfilePathFE: './frontend/Dockerfile'
+  dockerfilePathBE-nginx: './backend/Dockerfile-nginx'
+  dockerfilePathBE-php: './backend/Dockerfile-php'
+  frontendContext: './frontend/'
+  backendContext: './backend/'
+  tag: '$(Build.SourceBranchName)_$(Build.BuildNumber)'
+  # K8s service connection established in "Project settings/Service connections"
+  k8sConnection: 'as-cicd-k8s'
+  k8sNamespace: $(env_type)
+  imagePullSecret: 'ascicdacr-auth'
+  # Dev/prod k8s customization folders
+  kustomizationFolder: '$(Pipeline.Workspace)/manifests.$(env_type)/'
+  # K8s secret for apllication environment variables storing
+  appSecret: 'app-secret'
+  # K8s configmap for apllication environment variables storing
+  appNonSecret: 'app-public'
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: QualityGate
+  displayName: Checking source code with SonarCloud
+  condition: false
+  jobs:
+    - job: CodeCheck
+      steps:
+        - task: SonarCloudPrepare@1
+          displayName: 'Prepare analysis on SonarCloud'
+          inputs:
+            SonarCloud: 'SonarCloud'
+            organization: 'asmirnov51'
+            scannerMode: 'CLI'
+            configMode: 'manual'
+            cliProjectKey: 'asmirnov51_test-repo'
+            cliProjectName: 'test repo'
+            cliSources: '.'
+            extraProperties: |
+              sonar.exclusions=**/jquery.js
+        - task: SonarCloudAnalyze@1
+        - task: SonarCloudPublish@1
+          inputs:
+            pollingTimeoutSec: '60'
+
+- stage: Build
+  displayName: Building and storing application images in ACR
+  jobs:
+  - job: Build
+    displayName: Building and storing images
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push FE image
+      inputs:
+        command: BuildAndPush
+        repository: $(imageRepositoryFE)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(frontendContext)
+        dockerfile: $(dockerfilePathFE)
+        tags: $(tag)
+    - task: Docker@2
+      displayName: Build BE-nginx image
+      inputs:
+        command: BuildAndPush
+        repository: $(imageRepositoryBE-nginx)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(backendContext)
+        dockerfile: $(dockerfilePathBE-nginx)
+        tags: $(tag)
+    - task: Docker@2
+      displayName: Build BE-php image
+      inputs:
+        command: BuildAndPush
+        repository: $(imageRepositoryBE-php)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(backendContext)
+        dockerfile: $(dockerfilePathBE-php)
+        tags: $(tag)
+
+    - publish: manifests
+      artifact: manifests
+    - publish: manifests.$(env_type)
+      artifact: manifests.$(env_type)
+
+- stage: Deploy
+  displayName: Deploying application to Azure k8s 
+  dependsOn: Build
+  condition: false
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to AKS dev
+    pool:
+      vmImage: $(vmImageName)
+    environment: dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Creating k8s namespace for choosen environment
+          - task: Kubernetes@1
+            displayName: Creating a new namespace $(k8sNamespace)
+            inputs:
+              kubernetesServiceEndpoint: $(k8sConnection)
+              command: apply
+              useConfigurationFile: true
+              inline: '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "$(k8sNamespace)" }}'
+          # Creating secret for ACR connection
+          - task: KubernetesManifest@0
+            displayName: Creating imagePullSecret
+            inputs:
+              action: createSecret
+              kubernetesServiceConnection: $(k8sConnection)
+              secretName: $(imagePullSecret)
+              namespace: $(k8sNamespace)
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+          # Creating secrets for DB connection
+          - task: KubernetesManifest@0
+            displayName: Creating app variables secret
+            inputs:
+              action: createSecret
+              kubernetesServiceConnection: $(k8sConnection)
+              secretName: $(appSecret)
+              secretType: generic
+              namespace: $(k8sNamespace)
+              secretArguments: '--from-literal=DB_USERNAME=$(DB_USERNAME) --from-literal=DB_PASSWORD=$(DB_PASSWORD)'
+          # Creating configmap for non-secret variables
+          - task: Kubernetes@1
+            displayName: Creating a map for non-secret variables
+            inputs:
+              kubernetesServiceEndpoint: $(k8sConnection)
+              namespace: $(k8sNamespace)
+              configMapName: $(appNonSecret)
+              forceUpdateConfigMap: true
+              configMapArguments: '--from-literal=ENV_TYPE=$(env_type) --from-literal=DB_HOST=$(DB_HOST) --from-literal=DB_NAME=$(DB_NAME)'
+          # "Backing" resulting manifest via kustomize
+          - task: KubernetesManifest@0
+            name: bake
+            displayName: Baking K8s manifests from kustomization path
+            inputs:
+              action: bake
+              renderType: kustomize
+              kustomizationPath: $(kustomizationFolder)
+          # Applying manifest
+          - task: KubernetesManifest@0
+            displayName: Deploying to Kubernetes cluster
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: $(k8sConnection)
+              namespace: $(k8sNamespace)
+              manifests: $(bake.manifestsBundle)
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepositoryFE):$(tag)
+                $(containerRegistry)/$(imageRepositoryBE-nginx):$(tag)
+                $(containerRegistry)/$(imageRepositoryBE-php):$(tag)
+
