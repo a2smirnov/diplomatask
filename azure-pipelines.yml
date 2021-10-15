@@ -25,29 +25,38 @@ variables:
   #dockerRegistryServiceConnection: 'ascicdacr'
   #containerRegistry: 'ascicdacr.azurecr.io'
   # Images for app parts
-  imageRepository: 'ascicdacr'
+- name: imageRepository
+  value: 'ascicdacr'
   #imageRepositoryFE: 'ascicdacr/fe-nginx'
   #imageRepositoryBE-nginx: 'ascicdacr/be-nginx'
   #imageRepositoryBE-php: 'ascicdacr/be-php'
   # Other Build settings
-  dockerfilePathFE: './frontend/Dockerfile'
-  dockerfilePathBE-nginx: './backend/Dockerfile-nginx'
-  dockerfilePathBE-php: './backend/Dockerfile-php'
-  frontendContext: './frontend/'
-  backendContext: './backend/'
-  tag: '$(Build.SourceBranchName)_$(Build.BuildNumber)'
+- name: dockerfilePathFE
+  value: './frontend/Dockerfile'
+- name: dockerfilePathBE-nginx
+  value: './backend/Dockerfile-nginx'
+- name: dockerfilePathBE-php
+  value: './backend/Dockerfile-php'
+- name: frontendContext
+  value: './frontend/'
+- name: backendContext
+  value: './backend/'
+- name: tag
+  value: '$(Build.SourceBranchName)_$(Build.BuildNumber)'
   # K8s service connection established in "Project settings/Service connections"
   #k8sConnection: 'as-cicd-k8s'
   #k8sNamespace: $(env_type)
   #imagePullSecret: 'ascicdacr-auth'
   # Dev/prod k8s customization folders
-  kustomizationFolder: '$(Pipeline.Workspace)/manifests.$(env_type)/'
+- name: kustomizationFolder
+  value: '$(Pipeline.Workspace)/manifests.$(env_type)/'
   # K8s secret for apllication environment variables storing
   #appSecret: 'app-secret'
   # K8s configmap for apllication environment variables storing
   #appNonSecret: 'app-public'
   # Agent VM image name
-  vmImageName: 'ubuntu 20.04'
+ - name: vmImageName
+   value: 'ubuntu 20.04'
 
 stages:
 - stage: QualityGate
