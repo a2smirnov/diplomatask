@@ -17,7 +17,7 @@ resources:
 - repo: self
 
 variables:
-
+- group: 'Diploma'
   # Environment type - 'dev' or 'prod'
   #devEnv: 'dev'
   #prodEnv: 'prod'
