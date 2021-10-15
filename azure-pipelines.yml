@@ -117,7 +117,17 @@ stages:
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-php)
         tags: $(tag)
+#Here will be manifest preparation
+    - script: envsubst < manifests.$ENV_TYPE)/kustomization-tmp.yaml > manifests.$ENV_TYPE)/kustomization.yaml
+      env:
+        EXT_NAME: "http://$(devEnv).$(aksExternalIP).nip.io"
+        ENV_TYPE: $(devEnv)
 
+    - script: envsubst < manifests.$ENV_TYPE)/kustomization-tmp.yaml > manifests.$ENV_TYPE)/kustomization.yaml
+      env:
+        EXT_NAME: "http://$(devEnv).$(aksExternalIP).nip.io"
+        ENV_TYPE: $(prodEnv)
+    
     - publish: manifests
       artifact: manifests
     - publish: manifests.$(devEnv)
