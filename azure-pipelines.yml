@@ -19,15 +19,16 @@ resources:
 variables:
 
   # Environment type - 'dev' or 'prod'
-  dev_env: 'dev'
-  prod_env: 'prod'
+  #devEnv: 'dev'
+  #prodEnv: 'prod'
   # Container registry service connection established in "Project settings/Service connections"
-  dockerRegistryServiceConnection: 'ascicdacr'
-  containerRegistry: 'ascicdacr.azurecr.io'
+  #dockerRegistryServiceConnection: 'ascicdacr'
+  #containerRegistry: 'ascicdacr.azurecr.io'
   # Images for app parts
-  imageRepositoryFE: 'ascicdacr/fe-nginx'
-  imageRepositoryBE-nginx: 'ascicdacr/be-nginx'
-  imageRepositoryBE-php: 'ascicdacr/be-php'
+  imageRepository: 'ascicdacr'
+  #imageRepositoryFE: 'ascicdacr/fe-nginx'
+  #imageRepositoryBE-nginx: 'ascicdacr/be-nginx'
+  #imageRepositoryBE-php: 'ascicdacr/be-php'
   # Other Build settings
   dockerfilePathFE: './frontend/Dockerfile'
   dockerfilePathBE-nginx: './backend/Dockerfile-nginx'
@@ -36,29 +37,28 @@ variables:
   backendContext: './backend/'
   tag: '$(Build.SourceBranchName)_$(Build.BuildNumber)'
   # K8s service connection established in "Project settings/Service connections"
-  k8sConnection: 'as-cicd-k8s'
-  k8sNamespace: $(env_type)
-  imagePullSecret: 'ascicdacr-auth'
+  #k8sConnection: 'as-cicd-k8s'
+  #k8sNamespace: $(env_type)
+  #imagePullSecret: 'ascicdacr-auth'
   # Dev/prod k8s customization folders
   kustomizationFolder: '$(Pipeline.Workspace)/manifests.$(env_type)/'
   # K8s secret for apllication environment variables storing
-  appSecret: 'app-secret'
+  #appSecret: 'app-secret'
   # K8s configmap for apllication environment variables storing
-  appNonSecret: 'app-public'
+  #appNonSecret: 'app-public'
   # Agent VM image name
-  vmImageName: 'ubuntu-latest'
+  vmImageName: 'ubuntu 20.04'
 
 stages:
 - stage: QualityGate
   displayName: Checking source code with SonarCloud
-  condition: false
   jobs:
     - job: CodeCheck
       steps:
         - task: SonarCloudPrepare@1
           displayName: 'Prepare analysis on SonarCloud'
           inputs:
-            SonarCloud: 'SonarCloud'
+            SonarCloud: $(SonarCloudConnection)
             organization: 'asmirnov51'
             scannerMode: 'CLI'
             configMode: 'manual'
@@ -84,25 +84,25 @@ stages:
       displayName: Build and push FE image
       inputs:
         command: BuildAndPush
-        repository: $(imageRepositoryFE)
+#        repository: $(imageRepositoryFE)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(frontendContext)
         dockerfile: $(dockerfilePathFE)
         tags: $(tag)
     - task: Docker@2
-      displayName: Build BE-nginx image
+      displayName: Build and push BE-nginx image
       inputs:
         command: BuildAndPush
-        repository: $(imageRepositoryBE-nginx)
+#        repository: $(imageRepositoryBE-nginx)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-nginx)
         tags: $(tag)
     - task: Docker@2
-      displayName: Build BE-php image
+      displayName: Build and push BE-php image
       inputs:
         command: BuildAndPush
-        repository: $(imageRepositoryBE-php)
+#        repository: $(imageRepositoryBE-php)
         containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(backendContext)
         dockerfile: $(dockerfilePathBE-php)
