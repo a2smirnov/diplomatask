@@ -3,14 +3,15 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 # Setting "build and deploy" trigger - master branch with 'Build' tag
-trigger:
+pr:
   batch: true
-  tags:
-    include:
-      - '*Build*'
+  branches:
+   include:
+     - master
   paths:
     exclude:
       - README.md
+  drafts: false
 
 
 resources:
