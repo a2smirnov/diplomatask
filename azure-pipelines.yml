@@ -4,7 +4,6 @@
 
 # Setting "build and deploy" trigger - master branch with 'Build' tag
 pr:
-  batch: true
   branches:
    include:
      - master
