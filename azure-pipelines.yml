@@ -18,6 +18,7 @@ resources:
 
 variables:
 - group: 'Diploma'
+- group: 'Application'
   # Environment type - 'dev' or 'prod'
   #devEnv: 'dev'
   #prodEnv: 'prod'
