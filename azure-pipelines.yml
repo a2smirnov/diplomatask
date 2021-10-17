@@ -2,18 +2,15 @@
 # Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
-# Turning off CI triggers
-trigger: none
-#Setting up PR trigger
-pr:
+#Setting up CI trigger
+trigger:
+  batch: true
   branches:
    include:
      - master
   paths:
     exclude:
       - README.md
-  drafts: false
-
 
 resources:
 - repo: self
@@ -52,7 +49,7 @@ variables:
 stages:
 - stage: QualityGate
   displayName: Checking source code with SonarCloud
-  condition: eq(variables['Build.SourceBranchName'], 'master')
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
     - job: CodeCheck
       steps:
@@ -75,7 +72,6 @@ stages:
 
 - stage: Build
   displayName: Building and storing application images in ACR
-#  dependsOn: QualityGate
   jobs:
   - job: Build
     displayName: Building and storing images
