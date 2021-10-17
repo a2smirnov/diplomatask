@@ -66,7 +66,7 @@ stages:
         - task: SonarCloudAnalyze@1
         - task: SonarCloudPublish@1
           inputs:
-            pollingTimeoutSec: '60'
+            pollingTimeoutSec: '30'
 
 - stage: Build
   displayName: Building and storing application images in ACR
