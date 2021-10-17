@@ -124,8 +124,8 @@ stages:
     - publish: manifests.$(prodEnv)
       artifact: manifests.$(prodEnv)
 
-- stage: Deploy
-  displayName: Deploying application to Azure k8s 
+- stage: DeployDev
+  displayName: Deploying application to Azure k8s dev
   dependsOn: Build
   condition: |
     and
@@ -146,8 +146,17 @@ stages:
           - template: templates/aksdeploy.yaml
             parameters:
               deployToEnv: $(devEnv)
+- stage: DeployProd
+  displayName: Deploying application to Azure k8s dev
+  dependsOn: DeployDev
+  condition: |
+    and
+    (
+      succeeded(),
+      eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
+    )
+  jobs:
   - deployment: DeployProd
-    dependsOn: DeployDev
     displayName: Deploy to AKS prod
     pool:
       vmImage: $(vmImageName)
