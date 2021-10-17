@@ -48,7 +48,6 @@ variables:
 stages:
 - stage: QualityGate
   displayName: Checking source code with SonarCloud
-  condition: false
   jobs:
     - job: CodeCheck
       steps:
@@ -127,7 +126,6 @@ stages:
 - stage: Deploy
   displayName: Deploying application to Azure k8s 
   dependsOn: Build
-#  condition: false
 
   jobs:
   - deployment: DeployDev
