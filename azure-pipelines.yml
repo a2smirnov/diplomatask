@@ -52,6 +52,7 @@ variables:
 stages:
 - stage: QualityGate
   displayName: Checking source code with SonarCloud
+  condition: eq(variables['Build.SourceBranchName'], 'master')
   jobs:
     - job: CodeCheck
       steps:
