@@ -147,7 +147,7 @@ stages:
             parameters:
               deployToEnv: $(devEnv)
 - stage: DeployProd
-  displayName: Deploying application to Azure k8s dev
+  displayName: Deploying application to Azure k8s prod
   dependsOn: DeployDev
   condition: |
     and
