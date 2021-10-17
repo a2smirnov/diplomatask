@@ -14,9 +14,7 @@ include_once '../objects/trackerdata.php';
 
 $database = new Database();
 $db = $database->getConnection();
-var_dump($db);
 $trackerdata = new TrackerData($db);
-var_dump($trackerdata);
 // создание таблицы в БД
 if($trackerdata->create()){
 
