@@ -44,6 +44,8 @@ variables:
   # Agent VM image name
 - name: vmImageName
   value: 'ubuntu 20.04'
+- name: releaseBranchName
+  value: 'master'
 
 stages:
 - stage: QualityGate
@@ -126,7 +128,12 @@ stages:
 - stage: Deploy
   displayName: Deploying application to Azure k8s 
   dependsOn: Build
-
+  condition: |
+    and
+    (
+      succeeded(),
+      eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
+    )
   jobs:
   - deployment: DeployDev
     displayName: Deploy to AKS dev
