@@ -19,12 +19,6 @@ resources:
 variables:
 - group: 'Diploma'
 - group: 'Application'
-  # Environment type - 'dev' or 'prod'
-  #devEnv: 'dev'
-  #prodEnv: 'prod'
-  # Container registry service connection established in "Project settings/Service connections"
-  #dockerRegistryServiceConnection: 'ascicdacr'
-  #containerRegistry: 'ascicdacr.azurecr.io'
   # Images for app parts
 - name: imageRepositoryFE
   value: 'ascicdacr/fe-nginx'
@@ -45,17 +39,8 @@ variables:
   value: './backend/'
 - name: tag
   value: '$(Build.SourceBranchName)_$(Build.BuildNumber)'
-  # K8s service connection established in "Project settings/Service connections"
-  #k8sConnection: 'as-cicd-k8s'
-  #k8sNamespace: $(env_type)
-  #imagePullSecret: 'ascicdacr-auth'
-  # Dev/prod k8s customization folders
 - name: kustomizationFolder
   value: '$(Pipeline.Workspace)/manifests'
-  # K8s secret for apllication environment variables storing
-  #appSecret: 'app-secret'
-  # K8s configmap for apllication environment variables storing
-  #appNonSecret: 'app-public'
   # Agent VM image name
 - name: vmImageName
   value: 'ubuntu 20.04'
@@ -86,7 +71,7 @@ stages:
 
 - stage: Build
   displayName: Building and storing application images in ACR
-#  dependsOn: QualityGate
+  dependsOn: QualityGate
   jobs:
   - job: Build
     displayName: Building and storing images
@@ -157,17 +142,17 @@ stages:
           - template: templates/aksdeploy.yaml
             parameters:
               deployToEnv: $(devEnv)
-#  - deployment: DeployProd
-#    dependsOn: DeployDev
-#    displayName: Deploy to AKS prod
-#    pool:
-#      vmImage: $(vmImageName)
-#    environment: $(prodEnv)
-#    strategy:
-#      runOnce:
-#        deploy:
-#          steps:
-#          - template: templates/aksdeploy.yaml
-#            parameters:
-#              deployToEnv: $(prodEnv)
+  - deployment: DeployProd
+    dependsOn: DeployDev
+    displayName: Deploy to AKS prod
+    pool:
+      vmImage: $(vmImageName)
+    environment: $(prodEnv)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/aksdeploy.yaml
+            parameters:
+              deployToEnv: $(prodEnv)
 
