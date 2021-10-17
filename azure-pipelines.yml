@@ -63,7 +63,7 @@ variables:
 stages:
 - stage: QualityGate
   displayName: Checking source code with SonarCloud
-  condition: false
+#  condition: false
   jobs:
     - job: CodeCheck
       steps:
@@ -86,8 +86,9 @@ stages:
 
 - stage: Build
   displayName: Building and storing application images in ACR
+  dependsOn: Build
   jobs:
-  - job: Build
+  - job: QualityGate
     displayName: Building and storing images
     pool:
       vmImage: $(vmImageName)
