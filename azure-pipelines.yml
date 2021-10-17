@@ -157,17 +157,17 @@ stages:
           - template: templates/aksdeploy.yaml
             parameters:
               deployToEnv: $(devEnv)
-  - deployment: DeployProd
-    dependsOn: DeployDev
-    displayName: Deploy to AKS prod
-    pool:
-      vmImage: $(vmImageName)
-    environment: $(prodEnv)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: templates/aksdeploy.yaml
-            parameters:
-              deployToEnv: $(prodEnv)
+#  - deployment: DeployProd
+#    dependsOn: DeployDev
+#    displayName: Deploy to AKS prod
+#    pool:
+#      vmImage: $(vmImageName)
+#    environment: $(prodEnv)
+#    strategy:
+#      runOnce:
+#        deploy:
+#          steps:
+#          - template: templates/aksdeploy.yaml
+#            parameters:
+#              deployToEnv: $(prodEnv)
 
