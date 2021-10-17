@@ -86,9 +86,9 @@ stages:
 
 - stage: Build
   displayName: Building and storing application images in ACR
-  dependsOn: Build
+  dependsOn: QualityGate
   jobs:
-  - job: QualityGate
+  - job: Build
     displayName: Building and storing images
     pool:
       vmImage: $(vmImageName)
