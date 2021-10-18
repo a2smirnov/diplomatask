@@ -11,6 +11,10 @@ trigger:
   paths:
     exclude:
       - README.md
+      - terraform/*
+      - k8s/*
+      - infra-start
+      - infra-stop
 
 resources:
 - repo: self
