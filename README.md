@@ -6,6 +6,9 @@ Infrastructure (Azure MySQL, ACR, Azure k8s) deployed via terraform first
 ./infra-start
 
 # Pipline prerequisites:
+
+Project service connection to GitHub should be actual
+
 Project service connection 'ascicdacr' to ACR should be actual
 
 Project service connection 'ascicdk8s' to AKS should be actual (with admin rights)
