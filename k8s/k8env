@@ -8,3 +8,23 @@ echo "Nodes list:"
 kubectl get nodes
 echo "Namespaces:"
 kubectl get all --all-namespaces
+export EXT_IP=$(kubectl -n kube-system get svc addon-http-application-routing-nginx-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+export ORG="https://dev.azure.com/asmirnov51/"
+export PROJECT="Diploma Demo"
+export GROUP_NAME="Diploma"
+export VG_ID=$(az pipelines variable-group list --group-name $GROUP_NAME --organization "$ORG" --project "$PROJECT" --output json --query [0].id)
+export DEV_URL="http://dev.$EXT_IP.nip.io"
+export PROD_URL="http://prod.$EXT_IP.nip.io"
+echo "Updating AKS load balancer IP in pipeline variables library"
+az pipelines variable-group variable update --group-id $VG_ID --name "aksExternalIP" \
+    --organization "$ORG" --project "$PROJECT" --value "$EXT_IP"
+echo "Updating devURL in pipeline variables library"
+az pipelines variable-group variable update --group-id $VG_ID --name "devURL" \
+    --organization "$ORG" --project "$PROJECT" --value "$DEV_URL"
+echo "Updating prodURL in pipeline variables library"
+az pipelines variable-group variable update --group-id $VG_ID --name "prodURL" \
+    --organization "$ORG" --project "$PROJECT" --value "$PROD_URL"
+echo "============================================================"
+echo "Use link $DEV_URL to access dev environment"
+echo "Use link $PROD_URL to access prod environment"
+echo "============================================================"
