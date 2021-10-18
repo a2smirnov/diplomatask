@@ -6,5 +6,6 @@ pushd terraform
 popd
 echo "Getting k8s credentials"
 pushd k8s
+	sleep 30
 	./k8env || { echo "Error getting k8s credentials!"; exit 1; }
 popd
