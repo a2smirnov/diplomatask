@@ -25,7 +25,7 @@ class TrackerData {
 function read(){
 
     // выбираем все записи на указанную дату
-    $query = "SELECT * FROM " . $this->table_name . " WHERE date_value=str_to_date(?, '%Y-%m-%d') ORDER BY deaths DESC";
+    $query = "SELECT * FROM " . $this->table_name . " WHERE date_value=str_to_date(?, '%Y-%m-%d') ORDER BY deaths ASC";
 
     // подготовка запроса 
     $stmt = $this->conn->prepare($query);
