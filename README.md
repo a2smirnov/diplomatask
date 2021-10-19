@@ -1,7 +1,6 @@
 
 [![Build Status](https://dev.azure.com/asmirnov51/Diploma%20Demo/_apis/build/status/a2smirnov.diplomatask?branchName=master)](https://dev.azure.com/asmirnov51/Diploma%20Demo/_build/latest?definitionId=10&branchName=master)
 # DevOps course diploma task demo
-# Deployment strategy to be defined...
 Infrastructure (Azure MySQL, ACR, Azure k8s) deployed via terraform first
 ./infra-start
 
