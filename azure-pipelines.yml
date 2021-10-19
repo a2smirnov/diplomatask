@@ -76,6 +76,7 @@ stages:
 
 - stage: Build
   displayName: Building and storing application images in ACR
+  condition: always()
   jobs:
   - job: Build
     displayName: Building and storing images
